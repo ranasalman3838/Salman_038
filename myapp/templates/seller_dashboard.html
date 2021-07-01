@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block myblock %}
+<div class="container-fluid">
+    <div class="row">
+        
+            <a href="{% url 'user_logout' %}" class="nav-link">Logout</a>
+        
+        <div class="col-md-12">
+            <h2> Seller Dashboard </h2>
+            <h1>Welcome {{user.first_name }} {{user.last_name}}</h1>
+        </div>
+    </div>
+    
+</div>
+
+<div class="containe">
+    <p>Place holder khan</p>
+    <a href="{% url 'user_logout' %}" class="nav-link">Logout</a>
+</div>
+{% endblock %} 

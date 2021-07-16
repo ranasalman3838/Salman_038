@@ -92,3 +92,21 @@ class cart(models.Model):
     
     def __str__(self):
         return self.user.username
+    
+class Order(models.Model):
+    cust_id=models.ForeignKey(User,on_delete=models.CASCADE)
+    cart_ids=models.CharField(max_length=234)
+    product_ids=models.CharField(max_length=250)
+    invoice_id = models.CharField(max_length=250)
+    status =models.BooleanField(default=False)
+    processed_on = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.cust_id.username
+    
+class Contact(models.Model):
+    name=models.CharField(max_length=50)
+    email=models.EmailField()
+    subject=models.CharField(max_length=100)
+    message=models.TextField()
+    

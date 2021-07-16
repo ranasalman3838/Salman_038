@@ -1,16 +1,20 @@
+from django.http.response import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render,HttpResponse,HttpResponseRedirect
 from .models import *
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.mail import send_mail,EmailMessage
 from django.contrib import messages
 from django.contrib.sessions.models import Session
 from django.template.loader import render_to_string
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_list_or_404, get_object_or_404
+from django.shortcuts import get_list_or_404, get_object_or_404,reverse
 import datetime
+from paypal.standard.forms import PayPalPaymentsForm
+ 
 # Create your views here.
 
 def index(request):
@@ -222,4 +226,146 @@ def add_to_cart(request):
      else:
          context["status"] = "Please Login First to View Your Cart"
      return render(request,"cart.html",context)
-          
+ 
+def get_cart_data(request):
+    items=cart.objects.filter(user__id=request.user.id,status=False)
+    itemtotal,total,quantity =0,0,0
+    
+    for i in items:
+        total +=float(i.product.price)*i.quantity
+        quantity+=float(i.quantity)
+        
+    res={
+        "total":total,"quan":quantity,"itotal":itemtotal,
+    }
+    return JsonResponse(res)
+
+
+
+def change_quan(request):
+    if "quantity" in request.GET:
+        cid = request.GET["cid"]
+        qty = request.GET["quantity"]
+        cart_obj = get_object_or_404(cart,id=cid)
+        cart_obj.quantity = qty
+        cart_obj.save()
+        return HttpResponse(cart_obj.quantity)
+
+    if "delete_cart" in request.GET:
+        id = request.GET["delete_cart"]
+        cart_obj = get_object_or_404(cart,id=id)
+        cart_obj.delete()
+        return HttpResponse(1)
+    
+def process_payment(request):
+   items = cart.objects.filter(user_id__id=request.user.id,status=False)
+    
+   products=""
+   amt=0
+   inv = "INV10001-"
+   cart_ids = ""
+   p_ids =""  
+   for j in items:
+        products += str(j.product.name)+"\n"
+        p_ids += str(j.product.id)+","
+        amt += float(j.product.price)
+        inv +=  str(j.id)
+        cart_ids += str(j.id)+","
+
+   paypal_dict = {
+        'business': settings.PAYPAL_RECEIVER_EMAIL,
+        'amount': str(amt),
+        'item_name': products,
+        'invoice': inv,
+        'notify_url': 'http://{}{}'.format("127.0.0.1:8000",
+                                           reverse('paypal-ipn')),
+        'return_url': 'http://{}{}'.format("127.0.0.1:8000",
+                                           reverse('payment_done')),
+        'cancel_return': 'http://{}{}'.format("127.0.0.1:8000",
+                                              reverse('payment_cancelled')),
+   }
+   usr = User.objects.get(username=request.user.username)
+   ord = Order(cust_id=usr,cart_ids=cart_ids,product_ids=p_ids)
+   ord.save()
+   ord.invoice_id = str(ord.id)+inv
+   ord.save()
+   request.session["order_id"] = ord.id
+    
+   form = PayPalPaymentsForm(initial=paypal_dict)
+   return render(request, 'process_payment.html', {'form': form})
+def payment_done(request):
+    if "order_id" in request.session:
+        order_id = request.session["order_id"]
+        ord_obj = get_object_or_404(Order,id=order_id)
+        ord_obj.status=True
+        ord_obj.save()
+        
+        for i in ord_obj.cart_ids.split(",")[:-1]:
+            cart_object = cart.objects.get(id=i)
+            cart_object.status=True
+            cart_object.save()
+    return render(request,"payment_success.html")
+
+def payment_cancelled(request):
+    return render(request,"payment_failed.html")
+
+def order_history(request):
+    context = {}
+    ch = register_table.objects.filter(user__id=request.user.id)
+    if len(ch)>0:
+        data = register_table.objects.get(user__id=request.user.id)
+        context["data"] = data
+
+    all_orders = []
+    orders = Order.objects.filter(cust_id__id=request.user.id).order_by("-id")
+    for order in orders:
+        products = []
+        for id in order.product_ids.split(",")[:-1]:
+            pro = get_object_or_404(Product, id=id)
+            products.append(pro)
+        ord = {
+            "order_id":order.id,
+            "products":products,
+            "invoice":order.invoice_id,
+            "status":order.status,
+            "date":order.processed_on,
+        }
+        all_orders.append(ord)
+    context["order_history"] = all_orders
+    return render(request,"order_history.html",context)
+
+def sendemail(request):
+    context = {}
+    ch = register_table.objects.filter(user__id=request.user.id)
+    if len(ch)>0:
+        data = register_table.objects.get(user__id=request.user.id)
+        context["data"] = data
+
+    if request.method=="POST":
+    
+        rec = request.POST["to"].split(",")
+        print(rec)
+        sub = request.POST["sub"]
+        msz = request.POST["msz"]
+
+        try:
+            em = EmailMessage(sub,msz,to=rec)
+            em.send()
+            context["status"] = "Email Sent"
+            context["cls"] = "alert-success"
+        except:
+            context["status"] = "Could not Send, Please check Internet Connection / Email Address"
+            context["cls"] = "alert-danger"
+def contact(request):
+    a=Contact.objects.all()
+    
+    if request.method =="POST":
+        n=request.POST["name"]
+        e=request.POST["email"]
+        s=request.POST["subject"]
+        m=request.POST["message"]
+        
+        data=Contact(name=n,email=e,subject=s,message=m)
+        data.save()
+        
+    return render(request,'contact.html')

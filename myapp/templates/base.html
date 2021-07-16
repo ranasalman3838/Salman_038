@@ -74,22 +74,22 @@
                         <!-- Header Right -->
                         <div class="header-right">
                             <ul>
-                                 <li>
-                                    <div class="nav-search search-switch">
-                                        <span class="flaticon-search"></span>
-                                    </div>
-                                </li>
+                                
                                 <li>
-                                    <a href="{% url 'cart'%}"><i class="flaticon-shopping-cart"></i></a> 
+                                    <div class="cart">
+                                        <a href="{% url 'cart'%}"><span class="flaticon-shopping-cart"></span></a>
+                                    </div>
+                                     
                                 </li>
                                 {% if user.is_authenticated %}
                                 <li class="nav.item mr-2">
 
                                     {% if data.profile_pic %}
-                              <a href="{% url 'cust_dashboard'%}"><img  src="/media/{{data.profile_pic}}" style="height:50px;width:50px;border-radius:50%"></a>
+                                     <a href="{% url 'cust_dashboard'%}">
+                                         <img  src="/media/{{data.profile_pic}}" style="height:50px;width:50px;border-radius:50%"></a>
                                      {% else %}
                                      <a href="{% url 'cust_dashboard'%}">
-                            <img src="{% static 'assets/img/user.jpg' %}" style="height:50px;width:50px;border-radius:50%"></a>
+                                     <img src="{% static 'assets/img/user.jpg' %}" style="height:50px;width:50px;border-radius:50%"></a>
                                  {% endif %}
                                </li>
                                {% else %}

@@ -23,4 +23,12 @@ urlpatterns = [
     path('user_logout',views.user_logout,name="user_logout"),
     path('edit_profile',views.edit_profile,name="edit_profile"),
     path('change_password',views.change_password,name="change_password"),
+    path('get_cart_data',views.get_cart_data,name="get_cart_data"),
+    path("change_quan",views.change_quan,name="change_quan"),
+   
+    path('process_payment',views.process_payment,name="process_payment"),
+    path('payment_done',views.payment_done,name="payment_done"),
+    path('payment_cancelled',views.payment_cancelled,name="payment_cancelled"),
+    path('order_history',views.order_history,name="order_history"),
+    path("sendemail",views.sendemail, name="sendemail"),
     ]

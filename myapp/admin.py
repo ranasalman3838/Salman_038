@@ -14,6 +14,9 @@ class catagory_Data(admin.ModelAdmin):
 class product_Data(admin.ModelAdmin):
     list_display = ['name','price','category','description','posted_date','image']
 
+class ContactAdmin(admin.ModelAdmin):
+    list_display=('name','email','subject','message')
+
 # class user_Data(admin.ModelAdmin):
 #     list_display = ['fname','lname','email','phoneno','password']   
     
@@ -24,3 +27,5 @@ admin.site.register(Product, product_Data)
 # admin.site.register(User, user_Data)
 admin.site.register(register_table)
 admin.site.register(cart)
+admin.site.register(Order)
+admin.site.register(Contact,ContactAdmin)

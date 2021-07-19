@@ -19,7 +19,8 @@ from paypal.standard.forms import PayPalPaymentsForm
 
 def index(request):
     info=Website_info.objects.all()
-    return render(request, 'index.html',{'webinfo':info})
+    latest_products=Product.objects.order_by('?')[:4]
+    return render(request, 'index.html',{'webinfo':info, 'latest_products':latest_products})
 
 def about(request):
     return render(request, 'about.html' )
@@ -273,7 +274,7 @@ def process_payment(request):
         cart_ids += str(j.id)+","
 
    paypal_dict = {
-        'business': settings.PAYPAL_RECEIVER_EMAIL,
+        'business': settings.PAYPAL_RECIEVER_EMAIL,
         'amount': str(amt),
         'item_name': products,
         'invoice': inv,

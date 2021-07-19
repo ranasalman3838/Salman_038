@@ -124,7 +124,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-PAYPAL_RECIEVER_EMAIL="sts.amandeepkaur@gmail.com"
+PAYPAL_RECIEVER_EMAIL="ranasalmanahmed38@gmail.com"
 PAYPAL_TEST= True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
